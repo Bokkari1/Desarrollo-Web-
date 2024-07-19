@@ -1,6 +1,11 @@
+//components/Register.js
 import React, { useState } from 'react';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { GoogleLogin } from 'react-google-login'; 
+import { useNavigate } from 'react-router-dom';
+import { auth, createUserWithEmailAndPassword, googleProvider } from '../firebaseConfig';
+import { signInWithPopup } from 'firebase/auth';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
@@ -9,6 +14,8 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
+
+  const navigate = useNavigate();
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -37,8 +44,32 @@ const Register = () => {
       return;
     }
 
+    // Almacenar el usuario registrado en localStorage
     localStorage.setItem(email, password);
+
     alert('Usuario registrado exitosamente!');
+
+    // Luego de registrar, redirige a la página de inicio de sesión
+    navigate('/login');
+  };
+
+  const handleGoogleRegister = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      navigate('/');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleEmailRegister = async (event) => {
+    event.preventDefault();
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      navigate('/');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -100,9 +131,13 @@ const Register = () => {
               />
               {errors.confirmPassword && <div className="alert alert-danger">{errors.confirmPassword}</div>}
             </Form.Group>
-            <Button type="submit" className="btn btn-primary btn-block">
+            <Button type="submit" className="btn btn-primary mt-3 btn-block">
               Registrarse
             </Button>
+            <button className="btn btn-primary mt-3" onClick={handleGoogleRegister}>
+        Registrarse con Google
+      </button>
+      
           </Form>
           <Link to="/login" className="btn btn-link d-block mt-3">
             ¿Ya tienes una cuenta? Inicia sesión
@@ -114,4 +149,3 @@ const Register = () => {
 };
 
 export default Register;
-

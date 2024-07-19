@@ -1,24 +1,37 @@
+//components/Login.js
+
 import React, { useState } from 'react';
 import { Form, Button, Container, Row, Col } from 'react-bootstrap';
-import { GoogleLogin } from 'react-google-login';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { GoogleLogin } from 'react-google-login'; 
+import { auth, googleProvider } from '../firebaseConfig';
+import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'; // Importa las funciones de autenticación correctamente
+
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  
 
-  const handleGoogleSuccess = (response) => {
-    console.log(response);
-    // Maneja la autenticación exitosa con Google
-    onLogin(); // Llama a la función de inicio de sesión en caso de éxito
+  const handleEmailLogin = async (event) => {
+    event.preventDefault();
+    try {
+      await signInWithEmailAndPassword(auth, email, password); // 
+      navigate('/');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const handleGoogleFailure = (response) => {
-    console.log(response);
-    // Maneja el fallo de autenticación con Google
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider); // 
+      navigate('/home'); // redirigir a home
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -27,13 +40,11 @@ const Login = ({ onLogin }) => {
     if (storedPassword === password) {
       alert('Inicio de sesión exitoso!');
       onLogin();
-      navigate('/Home'); // Llama a la función de inicio de sesión en caso de éxito
+      navigate('/home'); 
     } else {
       setError('Nombre de usuario o contraseña incorrectos');
     }
   };
-  
-  
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -76,17 +87,16 @@ const Login = ({ onLogin }) => {
             <Button type="submit" className="btn btn-primary btn-block" disabled={!validateEmail(email) || !validatePassword(password)}>
               Iniciar Sesión
             </Button>
-            <GoogleLogin
-              clientId="prueba-429219"
-              buttonText="Iniciar sesión con Google"
-              onSuccess={handleGoogleSuccess}
-              onFailure={handleGoogleFailure}
-              cookiePolicy={'single_host_origin'}
-              className="mt-3"
-            />
+            
+            <button className="btn btn-primary" onClick={handleGoogleLogin}>
+              Iniciar sesión con Google
+            </button>
           </Form>
           <Link to="/register" className="btn btn-link d-block mt-3">
             ¿No tienes una cuenta? Regístrate
+          </Link>
+          <Link to="/password-recovery" className="btn btn-link d-block mt-3">
+            ¿Olvidaste tu contraseña? 
           </Link>
         </Col>
       </Row>
@@ -95,4 +105,3 @@ const Login = ({ onLogin }) => {
 };
 
 export default Login;
-
